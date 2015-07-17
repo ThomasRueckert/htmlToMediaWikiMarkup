@@ -25,8 +25,7 @@ foreach ($filesArray as $htmlFile) {
         $outBuffer .= elementHandler($childsHtml, $outBuffer);
 
     }
-
-    echo $outBuffer;
+    $outBuffer = htmlspecialchars_decode($outBuffer);
 
     $outputName = 'out' . str_replace('.html', '.txt', $htmlFile);
 
@@ -52,7 +51,17 @@ function elementHandler($childsHtml, $tmpBuffer) {
     $lis = $childsHtml->find('li');
     foreach ($lis as $li) {
         /** @var simple_html_dom_node $li */
-        $tmpBuffer .= '*' . $li->innertext();
+        $c = -1;
+        $tmp = $li;
+        while (!is_null($tmp->parentNode()) && strpos($tmp->parentNode(),"<ul>")==0) {
+            $c++;
+            $tmp = $tmp->parentNode();
+        }
+        for ($i = 0; $i < $c; $i++) {
+            $tmpBuffer .= '*' . $li->innertext();
+        }
+
+
         /** @var simple_html_dom_node $next */
         $next = $li->nextSibling();
         if (strpos($next,"</p>") !== false) {
