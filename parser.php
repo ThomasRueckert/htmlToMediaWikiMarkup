@@ -28,6 +28,7 @@ foreach ($filesArray as $htmlFile) {
 
     file_put_contents($outputName, $outBuffer);
 
+    $outBuffer = '';
 
 }
 
@@ -38,7 +39,7 @@ echo PHP_EOL . '...done. Created ' . $outputName . PHP_EOL;
  * @param string $tmpBuffer
  * @return string
  */
-function elementHandler($childsHtml, $tmpBuffer, $depth = 0) {
+function elementHandler($childsHtml, $tmpBuffer, $depth = 0, $break = true) {
 
     foreach ($childsHtml->children as $child) {
         /** @var simple_html_dom_node $child */
@@ -49,24 +50,57 @@ function elementHandler($childsHtml, $tmpBuffer, $depth = 0) {
             continue;
         }
 
+        $inner = $child->innertext();
+
+        $break2 = true;
         if ($child->tag == 'li') {
             $tmpBuffer.='*';
             for ($i = 0; $i < $depth; $i++) {
                 $tmpBuffer.='*';
             }
+            $break2 = false;
         } else if ($child->tag == 'p') {
-            $inner = $child->innertext();
             $inner = str_replace("\t", '', $inner);
             $inner = str_replace("\n", ' ', $inner);
-            $tmpBuffer .= $inner . "\n";
+            $tmpBuffer .= $inner;
+
         } else if ($child->tag == 'b') {
             $tmpBuffer .= '===';
+            $tmpBuffer = depthTest($inner, $child, $tmpBuffer);
+            //$tmpBuffer .= $inner;
+            $tmpBuffer .= "===";
+        } else if ($child->tag == 'u') {
+            $tmpBuffer .= '<u>';
+            $tmpBuffer = depthTest($inner, $child, $tmpBuffer);
+            //$tmpBuffer .= $inner;
+            $tmpBuffer .= '</u>';
+        } else if ($child->tag == 'i') {
+            $tmpBuffer .= '\'\'';
+            $tmpBuffer = depthTest($inner, $child, $tmpBuffer);
+            //$tmpBuffer .= $inner;
+            $tmpBuffer .= '\'\'';
+        } else if ($child->tag == 'text') {
             $tmpBuffer .= $child->innertext();
-            $tmpBuffer .= "===\n";
         }
-
-
+        if ($break && $break2) {
+            $tmpBuffer .= "\n";
+        }
     }
-    $tmpBuffer .= "\n";
+    return $tmpBuffer;
+}
+
+function depthTest($inner, $child, $tmpBuffer) {
+    $inner = str_get_html($inner);
+    if ($inner) {
+        $firstChild = $inner->firstChild();
+        if ($firstChild) {
+            $tag = $firstChild->tag;
+            if (in_array($tag, ['u','b','i','p','li','ul'])) {
+                $tmpBuffer = elementHandler($child, $tmpBuffer, 0, false);
+            }
+        } else {
+            $tmpBuffer .= $inner;
+        }
+    }
     return $tmpBuffer;
 }
