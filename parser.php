@@ -35,19 +35,21 @@ foreach ($filesArray as $htmlFile) {
 echo PHP_EOL . '...done. Created ' . $outputName . PHP_EOL;
 
 /**
- * @param simple_html_dom_node $childsHtml
+ * @param simple_html_dom_node $child
  * @param string $tmpBuffer
  * @return string
  */
-function elementHandler($childsHtml, $tmpBuffer, $depth = 0, $break = true) {
+function elementHandler($child, $tmpBuffer, $depth = 0, $break = true) {
 
-    foreach ($childsHtml->children as $child) {
+    //foreach ($childsHtml->children as $child) {
         /** @var simple_html_dom_node $child */
 
 
         if ($child->tag == 'ul') {
-            $tmpBuffer = elementHandler($child, $tmpBuffer, ($depth+1));
-            continue;
+            foreach ($child->children as $grandchild) {
+                $tmpBuffer = elementHandler($grandchild, $tmpBuffer, ($depth+1));
+            }
+            return $tmpBuffer;
         }
 
         $inner = $child->innertext();
@@ -58,12 +60,16 @@ function elementHandler($childsHtml, $tmpBuffer, $depth = 0, $break = true) {
             for ($i = 0; $i < $depth; $i++) {
                 $tmpBuffer.='*';
             }
-            $break2 = false;
+            if ($inner=='') {
+                $break2 = false;
+            } else {
+                $tmpBuffer.=$child->innertext();
+            }
         } else if ($child->tag == 'p') {
             $inner = str_replace("\t", '', $inner);
             $inner = str_replace("\n", ' ', $inner);
-            $tmpBuffer .= $inner;
-
+            //$tmpBuffer .= $inner;
+            $tmpBuffer = depthTest($inner, $child, $tmpBuffer);
         } else if ($child->tag == 'b') {
             $tmpBuffer .= '===';
             $tmpBuffer = depthTest($inner, $child, $tmpBuffer);
@@ -81,11 +87,13 @@ function elementHandler($childsHtml, $tmpBuffer, $depth = 0, $break = true) {
             $tmpBuffer .= '\'\'';
         } else if ($child->tag == 'text') {
             $tmpBuffer .= $child->innertext();
+        } else if ($child->tag == 'font') {
+            $tmpBuffer .= $child->innertext();
         }
         if ($break && $break2) {
             $tmpBuffer .= "\n";
         }
-    }
+    //}
     return $tmpBuffer;
 }
 
@@ -95,8 +103,8 @@ function depthTest($inner, $child, $tmpBuffer) {
         $firstChild = $inner->firstChild();
         if ($firstChild) {
             $tag = $firstChild->tag;
-            if (in_array($tag, ['u','b','i','p','li','ul'])) {
-                $tmpBuffer = elementHandler($child, $tmpBuffer, 0, false);
+            if (in_array($tag, ['u','b','i','p','li','ul','font'])) {
+                $tmpBuffer = elementHandler($firstChild, $tmpBuffer, 0, false);
             }
         } else {
             $tmpBuffer .= $inner;
