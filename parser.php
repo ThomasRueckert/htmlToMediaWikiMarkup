@@ -8,6 +8,10 @@ $outBuffer = '';
 
 foreach ($filesArray as $htmlFile) {
 
+    if ($htmlFile == '') {
+        continue;
+    }
+
     echo 'Processing ' . $htmlFile . '...' . PHP_EOL;
     $html = file_get_html($htmlFile);
     $body = $html->find('body', 0);
@@ -30,9 +34,11 @@ foreach ($filesArray as $htmlFile) {
 
     $outBuffer = '';
 
+    echo '> Created ' . $outputName . PHP_EOL;
+
 }
 
-echo PHP_EOL . '...done. Created ' . $outputName . PHP_EOL;
+echo '...done.' . PHP_EOL;
 
 /**
  * @param simple_html_dom_node $child
@@ -56,7 +62,7 @@ function elementHandler($child, $tmpBuffer, $depth = 0, $break = true) {
 
         $break2 = true;
         if ($child->tag == 'li') {
-            $tmpBuffer.='*';
+            //$tmpBuffer.='*';
             for ($i = 0; $i < $depth; $i++) {
                 $tmpBuffer.='*';
             }
