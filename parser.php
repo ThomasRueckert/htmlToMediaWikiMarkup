@@ -21,7 +21,7 @@ foreach ($filesArray as $htmlFile) {
 
         $tmpBuffer = '';
         $tmpBuffer = elementHandler($childs, $tmpBuffer);
-
+        $tmpBuffer = str_replace('&nbsp;', ' ', $tmpBuffer);
 
         $outBuffer .= $tmpBuffer;
 
@@ -69,7 +69,7 @@ function elementHandler($child, $tmpBuffer, $depth = 0, $break = true) {
             if ($inner=='') {
                 $break2 = false;
             } else {
-                $tmpBuffer.=$child->innertext();
+                $tmpBuffer.=$inner;
             }
         } else if ($child->tag == 'p') {
             $inner = str_replace("\t", '', $inner);
@@ -92,9 +92,9 @@ function elementHandler($child, $tmpBuffer, $depth = 0, $break = true) {
             //$tmpBuffer .= $inner;
             $tmpBuffer .= '\'\'';
         } else if ($child->tag == 'text') {
-            $tmpBuffer .= $child->innertext();
+            $tmpBuffer .= $inner;
         } else if ($child->tag == 'font') {
-            $tmpBuffer .= $child->innertext();
+            $tmpBuffer .= $inner;
         }
         if ($break && $break2) {
             $tmpBuffer .= "\n";
